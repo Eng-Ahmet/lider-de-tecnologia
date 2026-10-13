@@ -643,6 +643,8 @@ export class ReportCreateComponent implements OnInit, AfterViewInit, OnDestroy {
     formData.append('latitude', this.form.latitude.toString());
     formData.append('longitude', this.form.longitude.toString());
     formData.append('description', this.form.description.trim());
+    formData.append('citizenEmail', 'a.h.ahmet.es@gmail.com');
+    formData.append('citizenName', 'Ahmet (Líder Digital)');
 
     // Public report submission - direct send without required authentication
     this.sendReportFormData(formData);

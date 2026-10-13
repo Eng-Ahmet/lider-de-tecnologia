@@ -151,9 +151,9 @@ export class ReportController {
       const { title, description, category, address, neighborhood, latitude, longitude, priority } = req.body;
 
       // Public / Guest user default if unauthenticated
-      const userId = req.user?.id || 'USR-VECINO-01';
-      const userFullName = req.user?.fullName || req.body.citizenName || 'Ciudadano de Málaga';
-      const userEmail = req.user?.email || req.body.citizenEmail || 'vecino@malaga.es';
+      const userId = req.user?.id || 'USR-AHMET-01';
+      const userFullName = req.user?.fullName || req.body.citizenName || 'Ahmet (Líder Digital)';
+      const userEmail = req.user?.email || req.body.citizenEmail || 'a.h.ahmet.es@gmail.com';
 
       // Backend Validation
       if (!title || title.trim().length < 3) {
@@ -317,9 +317,9 @@ export class ReportController {
   async updateStatus(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const modifier = req.user || {
-        id: 'USR-ADMIN-01',
-        fullName: 'Técnico Municipal / Administrador',
-        email: 'admin@callefix.malaga.es',
+        id: 'USR-AHMET-01',
+        fullName: 'Ahmet (Líder Digital)',
+        email: 'a.h.ahmet.es@gmail.com',
         role: 'Administrator'
       };
 

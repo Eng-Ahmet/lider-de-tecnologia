@@ -14,7 +14,7 @@ export const INITIAL_MOCK_REPORTS: Report[] = [
     priority: 'Critical',
     userId: 'USR-VECINO-01',
     userFullName: 'Carlos Moreno',
-    userEmail: 'vecino@malaga.es',
+    userEmail: 'a.h.ahmet.es@gmail.com',
     createdAt: new Date(Date.now() - 36 * 3600 * 1000).toISOString(),
     updatedAt: new Date(Date.now() - 2 * 3600 * 1000).toISOString(),
     imageUrl: 'https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&w=800&q=80',

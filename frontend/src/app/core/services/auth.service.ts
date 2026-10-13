@@ -11,30 +11,41 @@ export class AuthService {
   private http = inject(HttpClient);
   private apiUrl = getApiBaseUrl();
 
-  private currentUserSignal = signal<User | null>(null);
+  private defaultAdminUser: User = {
+    id: 'USR-AHMET-01',
+    fullName: 'Ahmet (Líder Digital)',
+    email: 'a.h.ahmet.es@gmail.com',
+    phoneNumber: '+34 600 123 456',
+    role: 'Administrator',
+    isActive: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+
+  private currentUserSignal = signal<User | null>(this.defaultAdminUser);
   readonly currentUser = this.currentUserSignal.asReadonly();
-  readonly isLoggedIn = computed(() => !!this.currentUserSignal());
-  readonly isAdmin = computed(() => this.currentUserSignal()?.role === 'Administrator');
+  // 100% Public Access - all permissions enabled by default
+  readonly isLoggedIn = computed(() => true);
+  readonly isAdmin = computed(() => true);
 
   constructor() {
-    console.log(`🔐 [AuthService] Inicializado con API Base URL: ${this.apiUrl}`);
+    console.log(`🔐 [AuthService] Inicializado con API Base URL: ${this.apiUrl} (Modo 100% Público y Abierto)`);
     this.loadStoredUser();
   }
 
   private loadStoredUser(): void {
-    const token = localStorage.getItem('callefix_token');
     const userJson = localStorage.getItem('callefix_user');
-    if (token && userJson) {
+    if (userJson) {
       try {
         const user = JSON.parse(userJson);
         this.currentUserSignal.set(user);
-        console.log('👤 [AuthService] Sesión existente restaurada desde localStorage:', user.email);
-      } catch {
-        this.loginAsDemoUser();
-      }
-    } else {
-      this.loginAsDemoUser();
+        console.log('👤 [AuthService] Sesión de usuario activa:', user.email);
+        return;
+      } catch {}
     }
+    this.currentUserSignal.set(this.defaultAdminUser);
+    localStorage.setItem('callefix_user', JSON.stringify(this.defaultAdminUser));
+    localStorage.setItem('callefix_token', 'token-demo-public-access');
   }
 
   register(data: { fullName: string; email: string; password: string; phoneNumber?: string; role?: string }): Observable<AuthResponse> {
