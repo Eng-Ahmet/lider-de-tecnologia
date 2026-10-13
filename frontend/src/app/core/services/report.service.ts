@@ -318,8 +318,7 @@ export class ReportService {
 
     const neighborhoodStats = Array.from(neighborhoodMap.entries()).map(([neighborhood, stats]) => ({
       neighborhood,
-      totalReports: stats.total,
-      resolvedReports: stats.resolved,
+      count: stats.total,
     }));
 
     const recentReports = [...reports]
