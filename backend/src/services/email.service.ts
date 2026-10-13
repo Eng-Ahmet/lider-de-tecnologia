@@ -74,7 +74,7 @@ export class EmailService {
             <p style="margin: 0 0 8px 0; font-weight: 600; color: #0f172a; font-size: 15px;">Detalles de la Incidencia:</p>
             <ul style="margin: 0; padding-left: 20px; color: #334155; font-size: 14px; line-height: 1.6;">
               <li><strong>ID de Seguimiento:</strong> #${report.id}</li>
-              <li><strong>Tipo:</strong> ${this.formatType(report.type)}</li>
+              <li><strong>Tipo:</strong> ${this.formatType(report.category)}</li>
               <li><strong>Barrio / Ubicación:</strong> ${report.neighborhood}</li>
               <li><strong>Prioridad Estimada:</strong> ${report.priority.toUpperCase()}</li>
               <li><strong>Estado:</strong> Pendiente de inspección</li>
@@ -145,12 +145,12 @@ export class EmailService {
    * Send notification when municipal team updates status (e.g. En revisión, Resuelta)
    */
   async sendStatusUpdateEmail(report: Report, citizenEmail: string, note?: string): Promise<boolean> {
-    const statusText = report.status === 'resolved' ? 'Resuelta ✅' : 'En Revisión / Cuadrilla Asignada 🛠️';
+    const statusText = report.status === 'Resolved' ? 'Resuelta ✅' : 'En Revisión / Cuadrilla Asignada 🛠️';
     const subject = `Actualización de incidencia #${report.id}: Estado cambiado a ${statusText}`;
 
     const html = `
       <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0;">
-        <div style="background: linear-gradient(135deg, ${report.status === 'resolved' ? '#15803d, #22c55e' : '#b45309, #f59e0b'}); padding: 30px 24px; text-align: center; color: white;">
+        <div style="background: linear-gradient(135deg, ${report.status === 'Resolved' ? '#15803d, #22c55e' : '#b45309, #f59e0b'}); padding: 30px 24px; text-align: center; color: white;">
           <h1 style="margin: 0; font-size: 24px; font-weight: 700;">¡Novedades en tu reporte! 📢</h1>
           <p style="margin: 8px 0 0 0; font-size: 14px; opacity: 0.9;">Estado: ${statusText}</p>
         </div>
