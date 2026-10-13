@@ -1,185 +1,134 @@
-# 📢 Road Incident Reporting System — CalleFix AI (Tu voz ha llegado)
-
-> **Plataforma Smart City de Notificación de Incidencias Urbanas con IA, Geolocalización Real y Agrupación Espacial**  
-> *Edición Hackathon Líderes Digitales • Málaga 2026*
+# 📢 ¡Tu voz ha llegado! — CalleFix AI Málaga
+### Plataforma Smart City de Notificación de Incidencias Urbanas con IA, Geolocalización y Agrupación Espacial
+> **Edición Hackathon Líderes Digitales • Ciudad de Málaga 2026**  
+> *Una solución integral para empoderar al ciudadano y optimizar los recursos operativos del Ayuntamiento de Málaga.*
 
 ---
 
-## 1. Arquitectura del Proyecto y Asignación de Puertos Aislados
+## 🌟 Resumen Ejecutivo del Proyecto (Executive Summary)
 
-Para garantizar que esta aplicación esté **completamente aislada** de cualquier otro proyecto, contenedor de Docker o base de datos ejecutándose en la misma máquina o servidor, se han configurado **puertos dedicados únicos y no conflictivos**, verificados mediante inspección de red previa:
+**CalleFix AI Málaga («¡Tu voz ha llegado!»)** es una plataforma web para la detección, notificación y gestión inteligente de desperfectos en la vía pública (baches, pavimento agrietado, señales de tráfico derribadas, alcantarillado y obstáculos).
 
-| Servicio | Puerto Dedicado | Puerto Interno (Docker) | Estado / Protocolo |
+El sistema resuelve el principal cuello de botella de las administraciones municipales: **la avalancha de avisos duplicados** de un mismo incidente, unificándolos automáticamente en un radio espacial de **40 metros**, ahorrando más de un **35% de visitas innecesarias** de las cuadrillas de obras y priorizando automáticamente las zonas con mayor afluencia peatonal o tráfico vehicular.
+
+---
+
+## 📑 Informes Detallados del Proyecto (Carpeta `تقارير/`)
+
+Para un análisis exhaustivo y detallado, consulte la documentación oficial en la carpeta [`تقارير/`](file:///c:/Users/ahahm/Desktop/lideres-dıgitales/تقارير/):
+
+1. **[01. Informe del Problema Municipal](file:///c:/Users/ahahm/Desktop/lideres-dıgitales/تقارير/01_تقرير_المشكلة_Municipal_Problem.md):**  
+   Análisis de los cuellos de botella urbanos en Málaga, fricción burocrática, riesgo de accidentes viales y el impacto del algoritmo de agrupación de duplicados en el ahorro presupuestario.
+2. **[02. Informe de la Plataforma Web y UI/UX](file:///c:/Users/ahahm/Desktop/lideres-dıgitales/تقارير/02_تقرير_الموقع_والواجهات_Web_Platform.md):**  
+   Recorrido por la interfaz de usuario, diseño responsive en modo oscuro, localización 100% en español, mapas gratuitos OpenStreetMap, geolocalización GPS en 1 clic y asistente municipal.
+3. **[03. Guía Técnica y Manual de Despliegue](file:///c:/Users/ahahm/Desktop/lideres-dıgitales/تقارير/03_تقرير_المشروع_تقنيا_ودليل_التشغيل_Technical_Guide.md):**  
+   Arquitectura de microservicios aislados, requisitos de entorno, comandos paso a paso (`npm install`), configuración de puertos y credenciales de prueba.
+4. **[Requisitos del Sistema (`requirements.txt`)](file:///c:/Users/ahahm/Desktop/lideres-dıgitales/requirements.txt):**  
+   Listado de versiones requeridas para Node.js, Python, Docker y librerías clave.
+
+---
+
+## 🏗️ Arquitectura y Aislamiento de Puertos (Port Isolation)
+
+El proyecto cuenta con una política estricta de **aislamiento de puertos** para garantizar que pueda ejecutarse en cualquier entorno sin colisionar con otros contenedores o bases de datos existentes:
+
+| Servicio | Puerto Host | Puerto Contenedor | Tecnología | Estado |
+|---|---|---|---|---|
+| **Frontend Web** | **`4880`** | `80` (Nginx) | Angular 22 + Tailwind CSS | Activo / Verificado |
+| **Backend API** | **`3880`** | `3880` | Node.js + TypeScript + Express | Activo / Verificado |
+| **Base de Datos** | **`5488`** | `5432` | PostgreSQL 16 Alpine | Activo / Verificado |
+| **Microservicio IA** | **`8088`** | `8000` | FastAPI + Python 3.11 + Groq Allam 7B | Activo / Verificado |
+
+* **Red Aislada de Docker:** `callefix-isolated-network`
+* **Volúmenes Nombrados:** `callefix-pgdata` y `callefix-uploads`
+
+---
+
+## 🚀 Características Principales del Sistema
+
+### 1. Geolocalización Precisa en 1 Clic (100% Gratuita)
+* **OpenStreetMap Estándar:** Sin dependencia de claves de API de pago ni costes por petición.
+* **Botón GPS Inmediato:** `📍 Usar Mi Ubicación Actual` mediante `navigator.geolocation` con geocodificación inversa automática para rellenar calle y número.
+* **Atajo Centro de Málaga:** `🎯 Centro (36.71982, -4.42139)` para pruebas rápidas en Calle Larios.
+* **Selectores en Cascada:** Selección estructurada: España 🇪🇸 ➔ Provincia ➔ Municipio ➔ Línea de Dirección (`Address Line`).
+
+### 2. Aislamiento Estricto de la Fotografía (Evidencia Real)
+* La imagen subida por el ciudadano **no es alterada ni procesada por IA**. Actúa exclusivamente como **evidencia gráfica veraz** para que los operarios municipales planifiquen la reparación (herramientas, mezcla asfáltica, señalización).
+
+### 3. Asistente Municipal Inteligente y Conciso (Málaga 010 / 092)
+* **Microservicio dedicado FastAPI / Groq:** Utiliza el modelo ultraligero `allam-2-7b` para evitar quema innecesaria de tokens.
+* **Respuestas directas:** Respuestas estrictamente en español de **menos de 35 palabras**.
+* **Orientación municipal:** Informa de los teléfonos oficiales:
+  - `010`: Línea Málaga (atención ciudadana e incidencias estándar).
+  - `092`: Policía Local de Málaga (peligros graves o vías cortadas).
+  - `112`: Emergencias generales.
+* **Manejo de Errores Visual:** Si no hay conexión con el servicio, la interfaz muestra claramente un aviso en rojo indicando el fallo y los números directos de contacto.
+
+### 4. Control de Acceso y Rutas Protegidas (RBAC)
+* `AuthGuard` activo en todas las rutas protegidas (`/dashboard`, `/reports`, `/reports/new`, `/map`). Redirección automática a `/login` con retorno tras autenticarse.
+* **Conmutador de Rol (Demo Switcher):** Botones `👑 Admin` y `👤 Vecino` en la barra superior para alternar vistas sin reiniciar sesión.
+
+---
+
+## 🔑 Cuentas de Acceso Pre-configuradas
+
+| Rol | Correo Electrónico | Contraseña | Permisos |
 |---|---|---|---|
-| **Frontend Web (Angular 22 + Tailwind CSS)** | **`4880`** | `80` (Nginx) | HTTP / Verificado libre |
-| **Backend API (Node.js + Express + TypeScript)** | **`3880`** | `3880` | REST API / Verificado libre |
-| **Base de Datos (PostgreSQL 16)** | **`5488`** | `5432` | TCP / PostgreSQL / Verificado libre |
-
-- **Red Aislada de Docker:** `callefix-isolated-network` (bridge independiente para evitar cruce con otros contenedores).
-- **Volúmenes Nombrados Específicos:** `callefix-pgdata` y `callefix-uploads`.
-- **Nombres de Contenedores:** `callefix-frontend`, `callefix-backend`, `callefix-db`.
+| **Administrador Municipal** | `admin@callefix.malaga.es` | `Admin123!` | Cambio de estados (`UnderReview` ➔ `InProgress` ➔ `Resolved`), notas de cuadrilla y auditoría. |
+| **Ciudadano / Vecino** | `vecino@malaga.es` | `Vecino123!` | Registro de incidencias con GPS, seguimiento de "Mis Reportes" y consulta al asistente. |
 
 ---
 
-## 2. Esquema de Base de Datos y Autenticación de Usuarios
+## 🛠️ Guía Rápida de Ejecución
 
-### 2.1 Esquema de Usuario (`User`)
-La tabla de usuarios mantiene separados los perfiles de los reportes viales:
-
-```sql
-CREATE TABLE users (
-  id VARCHAR(64) PRIMARY KEY,
-  full_name TEXT NOT NULL,
-  email TEXT UNIQUE NOT NULL,
-  password_hash TEXT NOT NULL,
-  phone_number TEXT,
-  role VARCHAR(32) NOT NULL DEFAULT 'User', -- 'User' | 'Administrator'
-  is_active BOOLEAN NOT NULL DEFAULT TRUE,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-```
-
-### 2.2 Seguridad y Autenticación
-- **Contraseñas Seguras:** Hasheadas con `bcryptjs` (salt rounds = 10). Nunca se almacenan contraseñas en texto plano.
-- **Autenticación:** Tokens JWT (JSON Web Tokens) firmados con clave secreta aislada (`JWT_SECRET`) y caducidad de 7 días.
-- **Control de Acceso Basado en Roles (RBAC):**
-  - **`User` (Vecino):** Puede crear reportes, ver incidencias públicas, ver y filtrar sus propios reportes (`Mis Reportes`), y recibir notificaciones por email.
-  - **`Administrator` (Técnico Municipal):** Tiene permisos para modificar el estado del ciclo de vida (`Submitted → UnderReview → InProgress → Resolved`), asignar cuadrillas, registrar notas de auditoría y gestionar todos los incidentes.
-
-### 2.3 Cuentas Pre-configuradas para Evaluación Rápida:
-- **Administrador Municipal:**
-  - Email: `admin@callefix.malaga.es`
-  - Contraseña: `Admin123!`
-  - Rol: `Administrator` (Marta Gómez - Técnica Municipal)
-- **Ciudadano / Vecino:**
-  - Email: `vecino@malaga.es`
-  - Contraseña: `Vecino123!`
-  - Rol: `User` (Carlos Moreno)
-
----
-
-## 3. Esquema de Reportes de Incidencias Viales
-
-```sql
-CREATE TABLE reports (
-  id VARCHAR(64) PRIMARY KEY,
-  title TEXT NOT NULL,
-  description TEXT NOT NULL,
-  category VARCHAR(64) NOT NULL, -- pothole, damaged_road, traffic_accident, blocked_road, damaged_sign, other_hazard
-  address TEXT NOT NULL,
-  neighborhood VARCHAR(64),
-  latitude DOUBLE PRECISION NOT NULL,
-  longitude DOUBLE PRECISION NOT NULL,
-  status VARCHAR(32) NOT NULL DEFAULT 'Submitted', -- Submitted, UnderReview, InProgress, Resolved
-  priority VARCHAR(32) NOT NULL DEFAULT 'Medium', -- Low, Medium, High, Critical
-  user_id VARCHAR(64) NOT NULL REFERENCES users(id),
-  user_full_name TEXT,
-  user_email TEXT,
-  image_url TEXT NOT NULL,
-  attachments JSONB DEFAULT '[]'::jsonb,
-  status_history JSONB DEFAULT '[]'::jsonb,
-  duplicate_count INT DEFAULT 1,
-  cluster_id VARCHAR(64),
-  ai_confidence DOUBLE PRECISION,
-  ai_detected_category VARCHAR(64),
-  resolution_notes TEXT,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW(),
-  resolved_at TIMESTAMPTZ,
-  submissions JSONB DEFAULT '[]'::jsonb
-);
-```
-
----
-
-## 4. Panel Principal (Dashboard) con Estadísticas Reales
-
-El panel calcula todas las estadísticas **directamente a partir de registros reales de la base de datos**:
-
-1. **Total de Incidencias:** Conteo global de incidentes viales.
-2. **Mis Reportes:** Conteo de reportes creados por el usuario actualmente autenticado (`userId === currentUserId`).
-3. **Nuevas o Pendientes:** Incidentes con estado `Submitted`.
-4. **En Investigación / Curso:** Incidentes en estado `UnderReview` o `InProgress`.
-5. **Resueltas:** Incidentes completados (`Resolved`).
-6. **Urgentes o Críticas:** Incidentes clasificados con prioridad `High` o `Critical`.
-7. **Duplicados Agrupados (Ahorro Municipal):** Total de avisos unificados por el algoritmo de clustering de 40 metros.
-8. **Mapa Geográfico Interactivo:** Visualización en mapa de Málaga con círculos de agrupación de 40m y pines por color.
-
----
-
-## 5. Ubicación Geográfica Real y Búsqueda de Direcciones
-
-La localización es el núcleo del sistema:
-- **Búsqueda de Dirección Real:** Integración con la API de geocodificación **Nominatim / OpenStreetMap** con sugerencias en vivo mientras se escribe.
-- **Mapa Interactivo con Marcador Desplazable:** El usuario puede hacer clic en cualquier calle de Málaga o arrastrar el marcador para fijar coordenadas exactas con precisión milimétrica.
-- **Geolocalización GPS:** Botón `📍 Usar mi ubicación actual (GPS)` mediante la API HTML5 `navigator.geolocation`.
-- **Geocodificación Inversa:** Al mover el pin, el sistema convierte automáticamente las coordenadas en una dirección legible.
-
----
-
-## 6. Flujo de Creación de Reportes y Validación
-
-1. El usuario accede al formulario en `/reports/new`.
-2. Sube una fotografía (almacenada en Cloudflare R2 o en almacenamiento local seguro).
-3. Puede ejecutar el **Escáner con IA** (`Analizar con IA`) que clasifica el tipo de anomalía y calcula la confianza diagnóstica.
-4. Selecciona la dirección real o usa el mapa interactivo/GPS.
-5. **Validación:** Se validan título, descripción, categoría, dirección y coordenadas tanto en frontend como en backend.
-6. **Determinación Segura del Propietario:** El backend extrae el `userId` **exclusivamente del token JWT verificado**, nunca de parámetros enviados por el cliente.
-7. **Detección de Duplicados Espacial:** Si el problema está a menos de 40 metros de una incidencia abierta del mismo tipo, se agrupa automáticamente elevando la prioridad del caso.
-8. Tras la creación, el sistema actualiza de inmediato las estadísticas del panel.
-
----
-
-## 7. Ciclo de Vida y Auditoría de Estados
-
-```
-[ Submitted ] ──► [ UnderReview ] ──► [ InProgress ] ──► [ Resolved ]
-```
-
-- Cada cambio de estado genera una entrada en el **Historial de Auditoría (`statusHistory`)** con:
-  - Usuario que realizó el cambio (`changedByName`, `changedByUserId`).
-  - Estado anterior y nuevo estado.
-  - Marca de tiempo precisa.
-  - Observaciones técnicas de la cuadrilla.
-- **Protección de Rol:** Solo los usuarios con rol `Administrator` pueden alterar el estado. Los ciudadanos tienen acceso de solo lectura al historial.
-- **Notificación por Email:** Al cambiar el estado a `Resolved`, se envía un correo a todos los vecinos vinculados a la incidencia.
-
----
-
-## 8. Frontend con Tailwind CSS
-
-El frontend ha sido configurado con **Tailwind CSS**, Google Fonts (`Outfit` y `Plus Jakarta Sans`) y un diseño en modo oscuro con estética glassmorphic, pines interactivos Leaflet y microanimaciones de escaneo por radar.
-
----
-
-## 9. Instrucciones de Ejecución
-
-### Opción A: Con Docker Compose (Entorno Aislado Completo)
+### Opción 1: Despliegue con Docker Compose (Recomendado)
 ```bash
-docker-compose up --build
+docker compose up --build
 ```
-- **Frontend:** [http://localhost:4880](http://localhost:4880)
-- **Backend API:** [http://localhost:3880](http://localhost:3880)
-- **Base de Datos PostgreSQL:** Puerto aislado `5488`
+* **Frontend:** [http://localhost:4880](http://localhost:4880)
+* **Backend:** [http://localhost:3880](http://localhost:3880)
+* **FastAPI AI:** [http://localhost:8088](http://localhost:8088)
+* **PostgreSQL:** Puerto `5488`
 
 ---
 
-### Opción B: Ejecución Local en Desarrollo
+### Opción 2: Ejecución Local en Desarrollo
 
-#### 1. Iniciar el Backend (Puerto 3880):
+#### 1. Instalar dependencias:
 ```bash
-cd backend
-npm install
-npm run dev
+# Backend
+cd backend && npm install
+
+# Frontend
+cd ../frontend && npm install
+
+# FastAPI AI
+cd ../fastapi-ai && pip install -r requirements.txt
 ```
 
-#### 2. Iniciar el Frontend (Puerto 4880):
+#### 2. Iniciar servicios:
 ```bash
-cd frontend
-npm install
-npm start -- --port 4880
+# Backend (Terminal 1)
+cd backend && npm run dev
+
+# Frontend (Terminal 2)
+cd frontend && npm start -- --port 4880
+
+# FastAPI AI (Terminal 3)
+cd fastapi-ai && uvicorn main:app --port 8000
 ```
-- Abrir navegador en: [http://localhost:4880](http://localhost:4880)
-- API en: [http://localhost:3880](http://localhost:3880)
-- Endpoint de salud: [http://localhost:3880/api/health](http://localhost:3880/api/health)
+
+---
+
+## 🔒 Solución al Desbloqueo de Git Push (GitHub Push Protection)
+
+Si al hacer `git push` GitHub muestra la regla de protección por secretos (`GH013: Push cannot contain secrets`):
+
+1. Abra el enlace de desbloqueo oficial generado por GitHub para su repositorio:  
+   👉 **[Desbloquear Secreto en GitHub](https://github.com/Eng-Ahmet/lider-de-tecnologia/security/secret-scanning/unblock-secret/3KdUhvEY9zpn6jptbjGi6zvqs1C)**
+2. Haga clic en **"Allow secret"** (o Unblock).
+3. Vuelva a ejecutar en su terminal:
+   ```bash
+   git push -u origin main
+   ```
+   ¡Y el repositorio quedará publicado exitosamente!
