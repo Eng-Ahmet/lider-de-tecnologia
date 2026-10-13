@@ -52,8 +52,8 @@ services:
     networks:
       - callefix-net
     environment:
-      GROQ_API_KEY: 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
-      GROQ_MODEL: allam-2-7b
+      GROQ_API_KEY: ${GROQ_API_KEY}
+      GROQ_MODEL: ${GROQ_MODEL:-allam-2-7b}
     ports:
       - "8088:8000"
 
@@ -73,8 +73,8 @@ services:
       FRONTEND_URL: http://localhost:4880
       JWT_SECRET: callefix-smart-city-jwt-secret-key-2026-isolated
       FASTAPI_AI_URL: http://callefix-ai:8000/api/chat
-      GROQ_API_KEY: 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
-      GROQ_MODEL: allam-2-7b
+      GROQ_API_KEY: ${GROQ_API_KEY}
+      GROQ_MODEL: ${GROQ_MODEL:-allam-2-7b}
       R2_BUCKET_NAME: tu-voz-ha-llegado
       R2_ACCESS_KEY_ID: 6fa85d0bfe93576a870c5b9c160f1a5d
       R2_SECRET_ACCESS_KEY: 736ef90adb4eb41950b4574c82051407d4bead813645e6b70ba362bf0d8cf1ae

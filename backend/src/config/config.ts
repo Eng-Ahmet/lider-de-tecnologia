@@ -38,9 +38,9 @@ export const config = {
   // Clustering settings (distance in meters)
   clusteringRadiusMeters: 40,
 
-  // Groq Cloud AI LLM (Ultra-lightweight Llama 3.1 8B Instant)
+  // Groq Cloud AI LLM
   groq: {
-    apiKey: process.env.GROQ_API_KEY || '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',
-    model: process.env.GROQ_MODEL || 'llama-3.1-8b-instant',
+    apiKey: process.env.GROQ_API_KEY || '',
+    model: process.env.GROQ_MODEL || 'allam-2-7b',
   },
 };

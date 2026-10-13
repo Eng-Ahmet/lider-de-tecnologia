@@ -20,8 +20,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-GROQ_API_KEY = os.getenv("GROQ_API_KEY", "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")
-# Modelo ligero 7B Allam
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
 GROQ_MODEL = os.getenv("GROQ_MODEL", "allam-2-7b")
 
 class ChatRequest(BaseModel):
