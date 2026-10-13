@@ -1,0 +1,35 @@
+<div class="min-h-screen flex flex-col bg-slate-950 text-slate-100">
+  <!-- Top Navigation Header -->
+  <app-navbar></app-navbar>
+
+  <!-- Router Outlet Container -->
+  <main class="flex-1">
+    <router-outlet></router-outlet>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-slate-900/90 border-t border-slate-800/80 py-8 px-4 text-center text-xs text-slate-400 mt-12">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-2">
+        <span class="text-base">📢</span>
+        <span class="font-bold text-slate-300 font-heading">¡Tu voz ha llegado! — CalleFix AI</span>
+        <span>•</span>
+        <span class="text-sky-400 font-medium">Smart City Málaga 2026</span>
+      </div>
+
+      <div class="text-slate-500 text-[11px]">
+        Arquitectura: Angular 22 • Node.js Express • Cloudflare R2 • PostgreSQL / In-Memory • Detección y Clustering Espacial
+      </div>
+
+      <div class="flex items-center gap-4 text-slate-400">
+        <a routerLink="/dashboard" class="hover:text-white transition-colors">Panel</a>
+        <a routerLink="/reports" class="hover:text-white transition-colors">Incidencias</a>
+        <a routerLink="/map" class="hover:text-white transition-colors">Mapa</a>
+        <a routerLink="/reports/new" class="text-sky-400 hover:text-sky-300 font-semibold">Reportar</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Floating Smart City AI Chatbot (LangChain / FastAPI) -->
+  <app-ai-chatbot></app-ai-chatbot>
+</div>

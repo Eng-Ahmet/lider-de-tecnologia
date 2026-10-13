@@ -1,0 +1,104 @@
+version: '3.8'
+
+# ========================================================
+# CALLEFIX AI — DEDICATED ISOLATED PROJECT CONFIGURATION
+# Non-conflicting Port Allocation:
+# - Frontend: 4880 -> 80
+# - Backend:  3880 -> 3880
+# - Database: 5488 -> 5432
+# - AI Microservice: 8088 -> 8000
+# ========================================================
+
+networks:
+  callefix-net:
+    driver: bridge
+    name: callefix-isolated-network
+
+volumes:
+  callefix-pgdata:
+    name: callefix-pgdata
+  callefix-uploads:
+    name: callefix-uploads
+
+services:
+  # 1. Base de datos PostgreSQL (Puerto Aislado 5488)
+  callefix-db:
+    image: postgres:16-alpine
+    container_name: callefix-db
+    restart: always
+    networks:
+      - callefix-net
+    environment:
+      POSTGRES_USER: callefix
+      POSTGRES_PASSWORD: callefix123
+      POSTGRES_DB: callefix_db
+    ports:
+      - "5488:5432"
+    volumes:
+      - callefix-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U callefix -d callefix_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 2. Microservicio de Inteligencia Artificial FastAPI / LangChain (Puerto Aislado 8088)
+  callefix-ai:
+    build:
+      context: ./fastapi-ai
+      dockerfile: Dockerfile
+    container_name: callefix-ai
+    restart: always
+    networks:
+      - callefix-net
+    environment:
+      GROQ_API_KEY: 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
+      GROQ_MODEL: allam-2-7b
+    ports:
+      - "8088:8000"
+
+  # 3. Servidor Backend Node.js + Express (Puerto Aislado 3880)
+  callefix-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: callefix-backend
+    restart: always
+    networks:
+      - callefix-net
+    environment:
+      PORT: 3880
+      NODE_ENV: production
+      DATABASE_URL: postgresql://callefix:callefix123@callefix-db:5432/callefix_db
+      FRONTEND_URL: http://localhost:4880
+      JWT_SECRET: callefix-smart-city-jwt-secret-key-2026-isolated
+      FASTAPI_AI_URL: http://callefix-ai:8000/api/chat
+      GROQ_API_KEY: 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
+      GROQ_MODEL: allam-2-7b
+      R2_BUCKET_NAME: tu-voz-ha-llegado
+      R2_ACCESS_KEY_ID: 6fa85d0bfe93576a870c5b9c160f1a5d
+      R2_SECRET_ACCESS_KEY: 736ef90adb4eb41950b4574c82051407d4bead813645e6b70ba362bf0d8cf1ae
+      R2_ACCOUNT_ID: 6fa85d0bfe93576a870c5b9c160f1a5d
+    ports:
+      - "3880:3880"
+    depends_on:
+      callefix-db:
+        condition: service_healthy
+      callefix-ai:
+        condition: service_started
+    volumes:
+      - callefix-uploads:/app/public/uploads
+
+  # 4. Aplicación Web Frontend Angular 22 (Puerto Aislado 4880)
+  callefix-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: callefix-frontend
+    restart: always
+    networks:
+      - callefix-net
+    ports:
+      - "4880:80"
+    depends_on:
+      - callefix-backend
