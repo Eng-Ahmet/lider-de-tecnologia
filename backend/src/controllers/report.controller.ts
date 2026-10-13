@@ -229,9 +229,10 @@ export class ReportController {
         const clusteredReport = clusterService.mergeIntoCluster(duplicateMatch.existingReport, submission);
         await dbService.saveReport(clusteredReport);
 
-        // Send email notification to citizen
+        // Send email notification to citizen (non-blocking)
         if (req.user.email) {
-          await emailService.sendReportMergedEmail(clusteredReport as any, req.user.email, req.user.fullName);
+          emailService.sendReportMergedEmail(clusteredReport as any, req.user.email, req.user.fullName)
+            .catch(err => console.warn('Non-blocking email notification:', err.message));
         }
 
         res.status(200).json({
@@ -287,9 +288,10 @@ export class ReportController {
 
       await dbService.saveReport(newReport);
 
-      // Send email confirmation
+      // Send email confirmation (non-blocking)
       if (req.user.email) {
-        await emailService.sendReportReceivedEmail(newReport as any, req.user.email, req.user.fullName);
+        emailService.sendReportReceivedEmail(newReport as any, req.user.email, req.user.fullName)
+          .catch(err => console.warn('Non-blocking email confirmation:', err.message));
       }
 
       res.status(201).json({

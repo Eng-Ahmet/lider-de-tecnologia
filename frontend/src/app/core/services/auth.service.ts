@@ -27,10 +27,10 @@ export class AuthService {
         const user = JSON.parse(userJson);
         this.currentUserSignal.set(user);
       } catch {
-        this.logout();
+        this.loginAsDemoUser();
       }
     } else {
-      this.currentUserSignal.set(null);
+      this.loginAsDemoUser();
     }
   }
 

@@ -29,7 +29,7 @@ export const config = {
     port: parseInt(process.env.SMTP_PORT || '587', 10),
     user: process.env.SMTP_USER || '',
     pass: process.env.SMTP_PASS || '',
-    from: process.env.EMAIL_FROM || '"Tu voz ha llegado - CalleFix AI" <notificaciones@callefix.malaga.es>',
+    from: process.env.EMAIL_FROM || '"CalleFix AI Málaga" <info@hwai-technology.com>',
   },
 
   // Database (PostgreSQL isolated port 5488)
