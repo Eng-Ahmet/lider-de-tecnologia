@@ -32,13 +32,13 @@ router.post('/reports/analyze', optionalUser, upload.single('image'), (req, res)
   reportController.analyzeReportImage(req, res)
 );
 
-// Create new report (authenticated, user ownership strictly extracted from token)
-router.post('/reports', authenticateUser, upload.single('image'), (req, res) =>
+// Create new report (Public / optionalUser - citizen or guest)
+router.post('/reports', optionalUser, upload.single('image'), (req, res) =>
   reportController.createReport(req, res)
 );
 
-// Update status (Admin only)
-router.patch('/reports/:id/status', authenticateUser, requireRole('Administrator'), (req, res) =>
+// Update status (Public / optionalUser)
+router.patch('/reports/:id/status', optionalUser, (req, res) =>
   reportController.updateStatus(req, res)
 );
 

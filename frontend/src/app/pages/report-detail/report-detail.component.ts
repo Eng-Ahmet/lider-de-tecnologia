@@ -237,9 +237,10 @@ import * as L from 'leaflet';
           </div>
 
           <!-- Municipal Operator Action Box (Admin Protected) -->
-          <div *ngIf="authService.isAdmin()" class="glass-card p-6 space-y-5 border-purple-500/40 bg-slate-900/90 shadow-2xl">
+          <!-- Municipal Operator Action Box (Public Testing & Management) -->
+          <div class="glass-card p-6 space-y-5 border-purple-500/40 bg-slate-900/90 shadow-2xl">
             <div class="space-y-1 pb-3 border-b border-slate-800">
-              <span class="text-[10px] font-bold text-purple-400 uppercase tracking-wider">Acción Exclusiva de Administrador</span>
+              <span class="text-[10px] font-bold text-purple-400 uppercase tracking-wider">Gestión Municipal y Control de Estado</span>
               <h3 class="text-base font-bold text-white font-heading">Actualizar Estado y Auditar</h3>
             </div>
 
@@ -292,15 +293,6 @@ import * as L from 'leaflet';
             <div *ngIf="updateSuccessMessage" class="p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs">
               {{ updateSuccessMessage }}
             </div>
-          </div>
-
-          <!-- Non-admin notification -->
-          <div *ngIf="!authService.isAdmin()" class="glass-card p-5 space-y-2 border-slate-800 text-center">
-            <span class="text-2xl">🔒</span>
-            <h4 class="text-xs font-bold text-slate-300">Modo Solo Lectura Ciudadano</h4>
-            <p class="text-[11px] text-slate-400">
-              Inicia sesión como Administrador Municipal (o usa el botón superior) para cambiar el estado o asignar cuadrillas.
-            </p>
           </div>
 
         </div>

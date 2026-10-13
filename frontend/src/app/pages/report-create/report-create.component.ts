@@ -644,17 +644,8 @@ export class ReportCreateComponent implements OnInit, AfterViewInit, OnDestroy {
     formData.append('longitude', this.form.longitude.toString());
     formData.append('description', this.form.description.trim());
 
-    if (!this.authService.isLoggedIn()) {
-      this.authService.login('vecino@malaga.es', 'Vecino123!').subscribe({
-        next: () => this.sendReportFormData(formData),
-        error: () => {
-          this.submitting = false;
-          alert('Por favor inicie sesión como vecino o administrador para enviar el reporte.');
-        }
-      });
-    } else {
-      this.sendReportFormData(formData);
-    }
+    // Public report submission - direct send without required authentication
+    this.sendReportFormData(formData);
   }
 
   private sendReportFormData(formData: FormData): void {
