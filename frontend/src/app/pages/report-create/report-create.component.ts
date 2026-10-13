@@ -267,8 +267,8 @@ interface DemoPreset {
       </form>
 
       <!-- Success Modal -->
-      <div *ngIf="successModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="glass-card max-w-lg w-full p-5 sm:p-6 space-y-5 border-sky-500/40 animate-scale-in">
+      <div *ngIf="successModal" (click)="resetForm()" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div (click)="$event.stopPropagation()" class="glass-card max-w-lg w-full p-5 sm:p-6 space-y-5 border-sky-500/40 animate-scale-in">
           
           <div class="text-center space-y-2">
             <div class="w-16 h-16 mx-auto rounded-full flex items-center justify-center text-3xl shadow-xl"
