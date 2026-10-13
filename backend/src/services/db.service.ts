@@ -73,6 +73,27 @@ export class DbService {
         );
       `);
 
+      // Ensure all initial and historical reports exist in PostgreSQL
+      for (const r of INITIAL_MOCK_REPORTS) {
+        await client.query(
+          `INSERT INTO reports (
+            id, title, description, category, address, neighborhood, latitude, longitude,
+            status, priority, user_id, user_full_name, user_email, image_url, attachments,
+            status_history, duplicate_count, cluster_id, ai_confidence, ai_detected_category,
+            resolution_notes, created_at, updated_at, resolved_at, submissions
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25)
+          ON CONFLICT (id) DO NOTHING`,
+          [
+            r.id, r.title, r.description, r.category, r.address, r.neighborhood || '',
+            r.latitude, r.longitude, r.status, r.priority, r.userId, r.userFullName || '',
+            r.userEmail || '', r.imageUrl, JSON.stringify(r.attachments || []), JSON.stringify(r.statusHistory || []),
+            r.duplicateCount, r.clusterId, r.aiConfidence || null, r.aiDetectedCategory || null,
+            r.resolutionNotes || null, r.createdAt, r.updatedAt, r.resolvedAt || null, JSON.stringify(r.submissions || [])
+          ]
+        );
+      }
+      console.log(`📋 PostgreSQL verificado con éxito: catálogo histórico de incidencias sincronizado.`);
+
       client.release();
       this.isPgConnected = true;
     } catch (error) {
@@ -208,13 +229,24 @@ export class DbService {
   /**
    * Calculate live statistics strictly from database records
    */
-  async getDashboardStats(currentUserId?: string): Promise<DashboardStats> {
+  async getDashboardStats(currentUser?: { id?: string; email?: string; role?: string }): Promise<DashboardStats> {
     const reports = await this.getAllReports();
 
     const totalReports = reports.length;
-    const userReports = currentUserId
-      ? reports.filter(r => r.userId === currentUserId).length
-      : 0;
+    let userReports = 0;
+    if (currentUser) {
+      if (currentUser.role === 'Administrator') {
+        userReports = totalReports;
+      } else {
+        const uId = currentUser.id;
+        const uEmail = (currentUser.email || '').toLowerCase();
+        userReports = reports.filter(r => 
+          r.userId === uId || 
+          (r.userEmail && r.userEmail.toLowerCase() === uEmail) ||
+          (r.submissions && r.submissions.some(s => s.citizenEmail && s.citizenEmail.toLowerCase() === uEmail))
+        ).length;
+      }
+    }
 
     const newOrPendingReports = reports.filter(r => r.status === 'Submitted').length;
     const investigatingReports = reports.filter(r => r.status === 'UnderReview' || r.status === 'InProgress').length;
@@ -260,7 +292,7 @@ export class DbService {
       duplicatesMerged,
       categoryBreakdown,
       neighborhoodStats,
-      recentReports: reports.slice(0, 6),
+      recentReports: reports,
     };
   }
 }

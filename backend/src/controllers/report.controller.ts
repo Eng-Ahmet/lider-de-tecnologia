@@ -15,8 +15,7 @@ export class ReportController {
    */
   async getDashboard(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      const currentUserId = req.user?.id;
-      const stats = await dbService.getDashboardStats(currentUserId);
+      const stats = await dbService.getDashboardStats(req.user);
       res.json(stats);
     } catch (error) {
       console.error('Error fetching dashboard stats:', error);
@@ -33,9 +32,15 @@ export class ReportController {
       const { category, status, priority, neighborhood, search, onlyMine } = req.query;
       let reports = await dbService.getAllReports();
 
-      // If requested only authenticated user's reports
-      if (onlyMine === 'true' && req.user) {
-        reports = reports.filter(r => r.userId === req.user?.id);
+      // If requested only authenticated user's reports (Admins see all)
+      if (onlyMine === 'true' && req.user && req.user.role !== 'Administrator') {
+        const uId = req.user.id;
+        const uEmail = (req.user.email || '').toLowerCase();
+        reports = reports.filter(r =>
+          r.userId === uId ||
+          (r.userEmail && r.userEmail.toLowerCase() === uEmail) ||
+          (r.submissions && r.submissions.some(s => s.citizenEmail && s.citizenEmail.toLowerCase() === uEmail))
+        );
       }
 
       if (category && category !== 'all') {

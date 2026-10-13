@@ -16,11 +16,19 @@ import { Report, IncidentPriority } from '../../core/models/report.model';
       <!-- Top Title and Action -->
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
+          <div class="flex items-center gap-2 mb-1">
+            <span *ngIf="authService.isAdmin()" class="px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 text-[11px] font-bold">
+              👑 Modo Administrador Municipal
+            </span>
+            <span *ngIf="!authService.isAdmin()" class="px-2.5 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30 text-[11px] font-bold">
+              👤 Vista Ciudadana: {{ authService.currentUser()?.fullName || 'Vecino' }}
+            </span>
+          </div>
           <h1 class="text-2xl sm:text-3xl font-extrabold text-white font-heading tracking-tight">
-            📋 Catálogo de Incidencias Viales
+            📋 Catálogo Histórico de Incidencias
           </h1>
           <p class="text-slate-300 text-sm">
-            Listado completo de incidencias reportadas en Málaga con geolocalización, autoría y estados.
+            Registro de todas las incidencias y quejas viales de Málaga con geolocalización, autoría y estados en tiempo real.
           </p>
         </div>
 
@@ -30,6 +38,35 @@ import { Report, IncidentPriority } from '../../core/models/report.model';
         </a>
       </div>
 
+      <!-- Quick Role Mode Tabs -->
+      <div class="flex flex-wrap items-center gap-2">
+        <button type="button" (click)="setFilterMode('all')"
+                [class.bg-sky-600]="!filters.onlyMine"
+                [class.text-white]="!filters.onlyMine"
+                [class.bg-slate-800]="filters.onlyMine"
+                [class.text-slate-400]="filters.onlyMine"
+                class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shadow-sm border border-slate-700/60">
+          <span>🏛️</span>
+          <span>Todas las Incidencias Municipales ({{ allReports.length }})</span>
+        </button>
+
+        <button *ngIf="authService.isLoggedIn()" type="button" (click)="setFilterMode('mine')"
+                [class.bg-sky-600]="filters.onlyMine"
+                [class.text-white]="filters.onlyMine"
+                [class.bg-slate-800]="!filters.onlyMine"
+                [class.text-slate-400]="!filters.onlyMine"
+                class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shadow-sm border border-slate-700/60">
+          <span>👤</span>
+          <span>{{ authService.isAdmin() ? 'Supervisión Administrador (Todas)' : 'Mis Incidencias Registradas (' + getMyReportsCount() + ')' }}</span>
+        </button>
+
+        <button (click)="loadReports()" [disabled]="loading"
+                class="ml-auto px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-all">
+          <span [class.animate-spin]="loading">🔄</span>
+          <span>Actualizar</span>
+        </button>
+      </div>
+
       <!-- Filters & Search Toolbar -->
       <div class="glass-card p-5 space-y-4">
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
@@ -37,7 +74,7 @@ import { Report, IncidentPriority } from '../../core/models/report.model';
           <!-- Search input -->
           <div class="relative lg:col-span-2">
             <span class="absolute left-3 top-2.5 text-slate-400">🔍</span>
-            <input type="text" [(ngModel)]="filters.search" (input)="applyFilters()" placeholder="Buscar por calle, barrio, creador o ID..."
+            <input type="text" [(ngModel)]="filters.search" (input)="applyFilters()" placeholder="Buscar por calle, barrio, creador o ID (#REP)..."
                    class="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 text-xs focus:border-sky-500 outline-none">
           </div>
 
@@ -81,23 +118,11 @@ import { Report, IncidentPriority } from '../../core/models/report.model';
 
         </div>
 
-        <!-- Secondary Toolbar: My Reports Toggle & Sort -->
+        <!-- Secondary Toolbar: Status Count & Sort -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-slate-800">
-          <div class="flex items-center gap-3">
-            <!-- Toggle "Mis Reportes" if logged in -->
-            <button *ngIf="authService.isLoggedIn()" (click)="toggleOnlyMine()" type="button"
-                    [class.bg-sky-600]="filters.onlyMine"
-                    [class.text-white]="filters.onlyMine"
-                    [class.bg-slate-800]="!filters.onlyMine"
-                    [class.text-slate-300]="!filters.onlyMine"
-                    class="px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-700 transition-all flex items-center gap-1.5">
-              <span>👤</span>
-              <span>{{ filters.onlyMine ? 'Mostrando: Mis Reportes' : 'Ver Sólo Mis Reportes' }}</span>
-            </button>
-
-            <span class="text-xs text-slate-400">
-              Mostrando <strong class="text-sky-400">{{ filteredReports.length }}</strong> de {{ allReports.length }} incidencias
-            </span>
+          <div class="text-xs text-slate-400">
+            Mostrando <strong class="text-sky-400">{{ filteredReports.length }}</strong> de {{ allReports.length }} incidencias disponibles
+            <span *ngIf="filters.onlyMine" class="text-sky-300 font-bold ml-1">• Filtrado por tus quejas y reportes</span>
           </div>
 
           <!-- Sort -->
@@ -130,6 +155,17 @@ import { Report, IncidentPriority } from '../../core/models/report.model';
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-800/60">
+              
+              <!-- Loading spinner row -->
+              <tr *ngIf="loading">
+                <td colspan="8" class="py-16 text-center text-slate-400 space-y-3">
+                  <div class="text-3xl animate-spin">🔄</div>
+                  <div class="text-sm font-semibold text-slate-200">Cargando incidencias anteriores...</div>
+                  <div class="text-xs text-slate-500">Recuperando registros históricos de la base de datos municipal</div>
+                </td>
+              </tr>
+
+              <!-- Report rows -->
               <tr *ngFor="let report of filteredReports" class="hover:bg-slate-800/30 transition-colors group">
                 
                 <td class="py-4 px-4 font-mono font-bold text-sky-400">
@@ -195,11 +231,15 @@ import { Report, IncidentPriority } from '../../core/models/report.model';
 
               </tr>
 
-              <tr *ngIf="filteredReports.length === 0">
+              <!-- Empty state row -->
+              <tr *ngIf="!loading && filteredReports.length === 0">
                 <td colspan="8" class="py-12 text-center text-slate-400 space-y-2">
                   <div class="text-3xl">🔍</div>
                   <div class="font-bold text-slate-300">No se encontraron incidencias</div>
-                  <p class="text-xs">Prueba a desactivar el filtro de "Mis reportes" o modificar la búsqueda.</p>
+                  <p class="text-xs">Prueba a desactivar el filtro de "Mis incidencias" o modificar el término de búsqueda.</p>
+                  <button (click)="resetFilters()" class="mt-2 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-sky-400 text-xs font-semibold">
+                    Restablecer Filtros
+                  </button>
                 </td>
               </tr>
             </tbody>
@@ -216,6 +256,7 @@ export class ReportListComponent implements OnInit {
 
   allReports: Report[] = [];
   filteredReports: Report[] = [];
+  loading = true;
 
   filters = {
     search: '',
@@ -233,10 +274,25 @@ export class ReportListComponent implements OnInit {
   }
 
   loadReports(): void {
-    this.reportService.getReports().subscribe((reports) => {
-      this.allReports = reports;
-      this.applyFilters();
+    this.loading = true;
+    console.log('📋 [ReportList] Cargando todas las incidencias históricas...');
+    this.reportService.getReports().subscribe({
+      next: (reports) => {
+        this.loading = false;
+        this.allReports = reports;
+        console.log(`✅ [ReportList] Se cargaron ${reports.length} incidencias en total.`);
+        this.applyFilters();
+      },
+      error: (err) => {
+        this.loading = false;
+        console.error('❌ [ReportList] Error al cargar incidencias:', err);
+      }
     });
+  }
+
+  setFilterMode(mode: 'all' | 'mine'): void {
+    this.filters.onlyMine = mode === 'mine';
+    this.applyFilters();
   }
 
   toggleOnlyMine(): void {
@@ -244,11 +300,46 @@ export class ReportListComponent implements OnInit {
     this.applyFilters();
   }
 
+  getMyReportsCount(): number {
+    const user = this.authService.currentUser();
+    if (!user) return 0;
+    if (user.role === 'Administrator') return this.allReports.length;
+
+    const uId = user.id;
+    const uEmail = (user.email || '').toLowerCase();
+    return this.allReports.filter(r =>
+      r.userId === uId ||
+      (r.userEmail && r.userEmail.toLowerCase() === uEmail) ||
+      (r.submissions && r.submissions.some(s => s.citizenEmail && s.citizenEmail.toLowerCase() === uEmail))
+    ).length;
+  }
+
+  resetFilters(): void {
+    this.filters = {
+      search: '',
+      status: 'all',
+      category: 'all',
+      priority: 'all',
+      neighborhood: 'all',
+      onlyMine: false,
+    };
+    this.applyFilters();
+  }
+
   applyFilters(): void {
     let result = [...this.allReports];
 
     if (this.filters.onlyMine && this.authService.currentUser()) {
-      result = result.filter(r => r.userId === this.authService.currentUser()?.id);
+      const user = this.authService.currentUser();
+      if (user?.role !== 'Administrator') {
+        const uId = user?.id;
+        const uEmail = (user?.email || '').toLowerCase();
+        result = result.filter(r =>
+          r.userId === uId ||
+          (r.userEmail && r.userEmail.toLowerCase() === uEmail) ||
+          (r.submissions && r.submissions.some(s => s.citizenEmail && s.citizenEmail.toLowerCase() === uEmail))
+        );
+      }
     }
 
     if (this.filters.status !== 'all') {
