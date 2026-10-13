@@ -7,12 +7,50 @@ import aiRoutes from './routes/ai.routes.js';
 
 const app = express();
 
-// Middlewares
+// Universal CORS and Preflight Middleware
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
+
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD');
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control, Pragma, X-Custom-Header, sentry-trace, baggage');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Max-Age', '86400');
+
+  // Answer preflight immediately
+  if (req.method === 'OPTIONS') {
+    return res.status(204).end();
+  }
+  next();
+});
+
 app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  origin: true,
+  credentials: true,
+  methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS', 'HEAD'],
+  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization', 'Cache-Control', 'Pragma'],
 }));
+
+// Global Request / Response Console Logger for Network Monitoring
+app.use((req, res, next) => {
+  const start = Date.now();
+  const origin = req.headers.origin || 'direct/same-host';
+  const hasAuth = Boolean(req.headers.authorization);
+
+  console.log(`🌐 [REQ-IN]  ${req.method.padEnd(6)} ${req.originalUrl || req.url} | Origin: ${origin} | Auth: ${hasAuth ? 'Bearer ✓' : 'None'}`);
+
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    const statusIcon = res.statusCode < 300 ? '✅' : (res.statusCode < 400 ? '➡️' : '❌');
+    console.log(`${statusIcon} [RES-OUT] ${req.method.padEnd(6)} ${req.originalUrl || req.url} -> Status ${res.statusCode} (${duration}ms)`);
+  });
+
+  next();
+});
 
 app.use(express.json({ limit: '15mb' }));
 app.use(express.urlencoded({ extended: true, limit: '15mb' }));

@@ -2,6 +2,8 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of, catchError, map } from 'rxjs';
 
+import { getApiBaseUrl } from '../config/api.config';
+
 export interface ChatMessage {
   id: string;
   sender: 'user' | 'assistant';
@@ -19,14 +21,11 @@ export interface ChatMessage {
 })
 export class AiChatService {
   private http = inject(HttpClient);
-
-  // FastAPI LangChain endpoint (proxied through backend or direct)
-  private apiEndpoint = window.location.port === '4880' 
-    ? 'http://localhost:3880/api/ai/chat' 
-    : '/api/ai/chat';
+  private apiEndpoint = `${getApiBaseUrl()}/ai/chat`;
 
   sendMessage(userQuery: string): Observable<ChatMessage> {
     const trimmed = userQuery.trim();
+    console.log(`🤖 [AiChatService] Enviando mensaje al chatbot IA: "${trimmed}"`);
 
     return this.http.post<any>(this.apiEndpoint, { prompt: trimmed }).pipe(
       map(res => {

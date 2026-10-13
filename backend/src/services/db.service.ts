@@ -121,8 +121,9 @@ export class DbService {
   }
 
   async getReportById(id: string): Promise<Report | undefined> {
+    const cleanId = (id || '').trim().toLowerCase();
     const all = await this.getAllReports();
-    return all.find(r => r.id === id);
+    return all.find(r => (r.id || '').trim().toLowerCase() === cleanId);
   }
 
   async saveReport(report: Report): Promise<Report> {

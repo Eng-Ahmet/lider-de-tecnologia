@@ -12,17 +12,27 @@ import * as L from 'leaflet';
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule],
   template: `
-    <div *ngIf="loading" class="max-w-6xl mx-auto px-4 py-16 text-center text-slate-400 space-y-3">
+    <div *ngIf="loading" class="max-w-6xl mx-auto px-4 py-16 text-center text-slate-400 space-y-4">
       <div class="text-3xl animate-spin">🔄</div>
-      <p class="text-sm font-semibold">Cargando detalles de la incidencia...</p>
+      <p class="text-sm font-semibold text-slate-200">Cargando detalles de la incidencia...</p>
+      <p class="text-xs text-slate-500">Conectando con la API municipal de Málaga...</p>
     </div>
 
     <div *ngIf="!loading && !report" class="max-w-6xl mx-auto px-4 py-16 text-center space-y-4">
       <div class="text-4xl">⚠️</div>
-      <h2 class="text-xl font-bold text-white font-heading">Incidencia no encontrada</h2>
-      <a routerLink="/reports" class="px-4 py-2 rounded-xl bg-sky-600 text-white font-semibold text-xs inline-block">
-        Volver a la lista
-      </a>
+      <h2 class="text-xl font-bold text-white font-heading">{{ loadError || 'Incidencia no encontrada' }}</h2>
+      <p class="text-xs text-slate-400 max-w-md mx-auto">
+        No se pudo recuperar la información de la incidencia. Puede haber sido resuelta, archivada o el identificador no existe.
+      </p>
+      <div class="flex items-center justify-center gap-3 pt-2">
+        <button *ngIf="currentId" (click)="retryLoad()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-sky-400 border border-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-all">
+          <span>🔄</span>
+          <span>Reintentar Carga</span>
+        </button>
+        <a routerLink="/reports" class="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-semibold text-xs inline-block shadow-lg shadow-sky-600/20 transition-all">
+          Volver a la lista
+        </a>
+      </div>
     </div>
 
     <div *ngIf="!loading && report" class="max-w-6xl mx-auto px-4 lg:px-8 py-8 space-y-8">
@@ -310,16 +320,27 @@ export class ReportDetailComponent implements OnInit, AfterViewInit, OnDestroy {
 
   report: Report | null = null;
   loading = true;
+  loadError: string | null = null;
+  currentId: string | null = null;
   selectedStatus: IncidentStatus = 'Submitted';
   operatorNote = '';
   updating = false;
   updateSuccessMessage: string | null = null;
+  private watchdogTimer: any = null;
 
   ngOnInit(): void {
-    const id = this.route.snapshot.paramMap.get('id');
-    if (id) {
-      this.loadReport(id);
-    }
+    this.route.paramMap.subscribe(params => {
+      const id = params.get('id');
+      console.log('🔍 [ReportDetail] Parámetro de ruta detectado:', id);
+      if (id) {
+        this.currentId = id;
+        this.loadReport(id);
+      } else {
+        console.warn('⚠️ [ReportDetail] No se encontró el parámetro ID en la URL');
+        this.loading = false;
+        this.loadError = 'Identificador de incidencia no especificado.';
+      }
+    });
   }
 
   ngAfterViewInit(): void {
@@ -329,25 +350,64 @@ export class ReportDetailComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    if (this.watchdogTimer) {
+      clearTimeout(this.watchdogTimer);
+    }
     if (this.miniMap) {
       this.miniMap.remove();
     }
   }
 
+  retryLoad(): void {
+    if (this.currentId) {
+      this.loadReport(this.currentId);
+    }
+  }
+
   loadReport(id: string): void {
     this.loading = true;
+    this.loadError = null;
+    console.log(`📡 [ReportDetail] Solicitando detalles de #${id} al servidor...`);
+
+    // Safety watchdog: ensure loading spinner never hangs indefinitely
+    if (this.watchdogTimer) clearTimeout(this.watchdogTimer);
+    this.watchdogTimer = setTimeout(() => {
+      if (this.loading) {
+        console.warn(`⏱️ [ReportDetail] Tiempo de espera agotado al cargar #${id}`);
+        this.loading = false;
+        if (!this.report) {
+          this.loadError = 'La conexión tardó demasiado tiempo. Por favor pulse Reintentar.';
+        }
+      }
+    }, 7000);
+
     this.reportService.getReportById(id).subscribe({
       next: (data) => {
-        this.report = data;
+        if (this.watchdogTimer) clearTimeout(this.watchdogTimer);
         this.loading = false;
+        this.report = data;
         if (data) {
+          console.log(`✅ [ReportDetail] Incidencia #${id} cargada exitosamente:`, data.title);
           this.selectedStatus = data.status;
           this.operatorNote = data.resolutionNotes || '';
-          setTimeout(() => this.initMiniMap(), 100);
+          setTimeout(() => {
+            try {
+              this.initMiniMap();
+            } catch (mapErr) {
+              console.warn('⚠️ [ReportDetail] Error inicializando mini-mapa:', mapErr);
+            }
+          }, 150);
+        } else {
+          console.warn(`⚠️ [ReportDetail] El servidor no encontró la incidencia #${id}`);
+          this.loadError = `Incidencia #${id} no encontrada en la base de datos municipal.`;
         }
       },
-      error: () => {
+      error: (err) => {
+        if (this.watchdogTimer) clearTimeout(this.watchdogTimer);
         this.loading = false;
+        this.report = null;
+        console.error(`❌ [ReportDetail] Error HTTP al cargar #${id}:`, err);
+        this.loadError = 'Error de comunicación con el servidor backend.';
       }
     });
   }
@@ -357,6 +417,12 @@ export class ReportDetailComponent implements OnInit, AfterViewInit, OnDestroy {
 
     if (this.miniMap) {
       this.miniMap.remove();
+      this.miniMap = null;
+    }
+
+    const containerEl = this.miniMapContainer.nativeElement as any;
+    if (containerEl._leaflet_id) {
+      delete containerEl._leaflet_id;
     }
 
     const pos: L.LatLngTuple = [this.report.latitude, this.report.longitude];
