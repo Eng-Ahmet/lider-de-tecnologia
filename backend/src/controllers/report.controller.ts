@@ -349,16 +349,18 @@ export class ReportController {
         return;
       }
 
-      // Notify citizen who created the report
+      // Notify citizen who created the report (non-blocking background task)
       if (updated.userEmail) {
-        await emailService.sendStatusUpdateEmail(updated as any, updated.userEmail, note);
+        emailService.sendStatusUpdateEmail(updated as any, updated.userEmail, note)
+          .catch(() => {});
       }
 
-      // Also notify any citizen submissions linked into this cluster
+      // Also notify any citizen submissions linked into this cluster (non-blocking)
       if (updated.submissions && updated.submissions.length > 0) {
         for (const sub of updated.submissions) {
           if (sub.citizenEmail && sub.citizenEmail !== updated.userEmail) {
-            await emailService.sendStatusUpdateEmail(updated as any, sub.citizenEmail, note);
+            emailService.sendStatusUpdateEmail(updated as any, sub.citizenEmail, note)
+              .catch(() => {});
           }
         }
       }
